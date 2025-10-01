@@ -1,0 +1,347 @@
+// Mobile Menu Toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    const navMenu = document.querySelector('.nav-menu');
+    
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+    }
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.navbar')) {
+            navMenu?.classList.remove('active');
+        }
+    });
+    
+    // Smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+    
+    // Gallery lightbox
+    const galleryImages = document.querySelectorAll('.gallery-image');
+    galleryImages.forEach(img => {
+        img.addEventListener('click', function() {
+            openLightbox(this.src);
+        });
+    });
+    
+    // Scroll to top button
+    const scrollBtn = document.createElement('button');
+    scrollBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    scrollBtn.className = 'scroll-to-top';
+    scrollBtn.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s;
+        z-index: 999;
+    `;
+    document.body.appendChild(scrollBtn);
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            scrollBtn.style.display = 'flex';
+        } else {
+            scrollBtn.style.display = 'none';
+        }
+    });
+    
+    scrollBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+
+// Lightbox for images
+function openLightbox(src) {
+    const lightbox = document.createElement('div');
+    lightbox.className = 'lightbox';
+    lightbox.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        cursor: pointer;
+    `;
+    
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = `
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 10px;
+    `;
+    
+    lightbox.appendChild(img);
+    document.body.appendChild(lightbox);
+    
+    lightbox.addEventListener('click', function() {
+        document.body.removeChild(lightbox);
+    });
+}
+
+// Form validation
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePhone(phone) {
+    const re = /^[\d\s\+\-\(\)]+$/;
+    return re.test(phone) && phone.replace(/\D/g, '').length >= 9;
+}
+
+// Alert notification
+function showAlert(message, type = 'success') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => document.body.removeChild(alert), 300);
+    }, 3000);
+}
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Lazy loading images
+if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('lazy');
+                observer.unobserve(img);
+            }
+        });
+    });
+    
+    document.querySelectorAll('img.lazy').forEach(img => {
+        imageObserver.observe(img);
+    });
+}
+
+// Price calculator
+function calculateTotalPrice(basePrice, numPeople, extras = []) {
+    let total = basePrice * numPeople;
+    extras.forEach(extra => {
+        total += extra.price * numPeople;
+    });
+    return total;
+}
+
+// Date formatting
+function formatDate(date) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(date).toLocaleDateString('en-US', options);
+}
+
+// Share functionality
+function shareOnSocialMedia(platform, url, title) {
+    let shareUrl;
+    
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+// Local storage helpers
+function saveToLocalStorage(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch(e) {
+        console.error('Error saving to localStorage:', e);
+    }
+}
+
+function getFromLocalStorage(key) {
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : null;
+    } catch(e) {
+        console.error('Error reading from localStorage:', e);
+        return null;
+    }
+}
+
+// Recently viewed tours
+function addToRecentlyViewed(tourId, tourData) {
+    let recent = getFromLocalStorage('recentlyViewedTours') || [];
+    recent = recent.filter(item => item.id !== tourId);
+    recent.unshift({ id: tourId, ...tourData, viewedAt: new Date().toISOString() });
+    recent = recent.slice(0, 5);
+    saveToLocalStorage('recentlyViewedTours', recent);
+}
+
+// Search suggestions
+function initSearchSuggestions(inputElement, suggestionsElement) {
+    let debounceTimer;
+    
+    inputElement.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            suggestionsElement.innerHTML = '';
+            suggestionsElement.style.display = 'none';
+            return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+            fetch(`/api/search-suggestions.php?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        suggestionsElement.innerHTML = data.suggestions
+                            .map(s => `<div class="suggestion-item">${s}</div>`)
+                            .join('');
+                        suggestionsElement.style.display = 'block';
+                    } else {
+                        suggestionsElement.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Search suggestions error:', err));
+        }, 300);
+    });
+}
+
+// Currency converter
+async function convertCurrency(amount, from, to) {
+    try {
+        // In production, use a real currency API
+        // For now, using fixed rates
+        const rates = {
+            'RWF': { 'USD': 0.00079 },
+            'USD': { 'RWF': 1265 }
+        };
+        
+        if (from === to) return amount;
+        return amount * (rates[from]?.[to] || 1);
+    } catch(e) {
+        console.error('Currency conversion error:', e);
+        return amount;
+    }
+}
+
+// Print page
+function printPage() {
+    window.print();
+}
+
+// Export data to CSV
+function exportToCSV(data, filename) {
+    const csv = data.map(row => 
+        Object.values(row).map(value => 
+            `"${String(value).replace(/"/g, '""')}"`
+        ).join(',')
+    ).join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Animation on scroll
+function animateOnScroll() {
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    elements.forEach(el => observer.observe(el));
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', animateOnScroll);
+} else {
+    animateOnScroll();
+}
